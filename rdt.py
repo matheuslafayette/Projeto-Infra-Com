@@ -1,6 +1,5 @@
 from socket import *
 from common import *
-
 class Rdt:
     
     def __init__(self, type : str, serverPort : int = 12000, serverName : str = 'localhost'):
@@ -8,13 +7,17 @@ class Rdt:
         self.serverPort = serverPort
         self.serverName = serverName
         self.type = type
-        self.num_seq = 0
+        self.num_seq_c = 0
+        self.num_seq_s = 0
         
         if(type == 'server'):
             self.socket.bind(("", serverPort))
     
     def __del__(self):
         self.socket.close()
+    
+    def close(self):
+        self.__del__()
     
     def send(self, data):
         
@@ -27,45 +30,47 @@ class Rdt:
             data = data.encode()
         
         print(data)
-        print(type(data))
+        
         self.socket.sendto(data, addr)
-        print("foixd")
     
     def receive(self):
-        bytes_read, self.serverName = self.socket.recvfrom(2048)
+        if(self.type == 'client'):
+            bytes_read = self.socket.recv(2048)
+        else:
+            bytes_read, self.serverName = self.socket.recvfrom(2048)
         return bytes_read
     
     def rdt_send(self, data):
         
-        if isinstance(data, bytes):
-            data = data.decode()
-        
-        data = data.encode()
+        if not isinstance(data, bytes):
+            data = data.encode()
         
         sum = checksum(data)
             
-        sndpkt = make_pkt(data, sum, self.num_seq)
+        sndpkt = make_pkt(data, sum, self.num_seq_c)
         sndpkt.encode()
         
         rcvpkt = None
         
-        while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq or not rcvpkt['is_ack']):
+        while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq_c or not rcvpkt['is_ack']):
             self.send(sndpkt)
             rcvpkt = self.rdt_rcv()
         
-        self.num_seq = 1 - self.num_seq
+        self.num_seq_c = 1 - self.num_seq_c
     
     def rdt_rcv(self):
         
         rcvpkt = eval(self.receive().decode())
         
-        while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq):
+        while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq_s):
             rcvpkt = eval(self.receive().decode())
         
         if(self.type == 'server'):
-            sndack = make_ack(self.num_seq)
+            sndack = make_ack(self.num_seq_s)
             self.send(sndack)
             print('mandei ack')
+        
+        self.num_seq_s = 1 - self.num_seq_s
         
         return rcvpkt
         

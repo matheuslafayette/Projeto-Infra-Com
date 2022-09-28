@@ -20,6 +20,9 @@ def main():
                     break
                 newFile.write(bytes_read)
         
+        server.close()
+        server = Rdt('client')
+        
         with(open(pathfile, "rb")) as file:
             while True:
                 bytes_read = file.read(2048)

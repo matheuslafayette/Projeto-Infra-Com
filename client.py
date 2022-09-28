@@ -20,6 +20,8 @@ def main():
     
     filename = "client-" + filename
     pathfile = "./client/" + filename
+    client.close()
+    client = Rdt('server')
     
     with open(pathfile, "wb") as newFile:
         while True:
