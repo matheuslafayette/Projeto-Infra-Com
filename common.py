@@ -1,22 +1,21 @@
 def checksum(data):
     
-        #RFC 1071
         addr = 0 
-        Sum = 0
+        sum = 0
 
         count = len(data)
         while (count > 1):
-            Sum += data[addr] << 8 + data[addr+1]
+            sum += data[addr] << 8 + data[addr+1]
             addr += 2
             count -= 2
             
         if (count > 0):
-            Sum += data[addr]
+            sum += data[addr]
 
-        while (Sum>>16):
-            Sum = (Sum & 0xffff) + (Sum >> 16)
+        while (sum>>16):
+            sum = (sum & 0xffff) + (sum >> 16)
 
-        checksum = ~Sum
+        checksum = ~sum
         return checksum
 
 def make_pkt(data, checksum, num_seq):
