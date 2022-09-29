@@ -2,16 +2,16 @@ from socket import *
 from common import *
 class Rdt:
     
-    def __init__(self, type : str, serverPort : int = 12000, serverName : str = 'localhost'):
+    def __init__(self, type : str, addrPort : int = 12000, addrName : str = 'localhost'):
         self.socket = socket(AF_INET, SOCK_DGRAM)
-        self.serverPort = serverPort
-        self.serverName = serverName
+        self.addrPort = addrPort
+        self.addrName = addrName
         self.type = type
         self.num_seq_c = 0
         self.num_seq_s = 0
         
         if(type == 'server'):
-            self.socket.bind(("", serverPort))
+            self.socket.bind(("", addrPort))
     
     def __del__(self):
         self.socket.close()
@@ -26,9 +26,9 @@ class Rdt:
     def udt_send(self, data):
         
         if self.type == 'client':
-            addr = (self.serverName, self.serverPort)
+            addr = (self.addrName, self.addrPort)
         else:
-            addr = self.serverName
+            addr = self.addrName
 
         if not isinstance(data, bytes):
             data = data.encode()
@@ -41,7 +41,7 @@ class Rdt:
         if(self.type == 'client'):
             bytes_read = self.socket.recv(4096)
         else:
-            bytes_read, self.serverName = self.socket.recvfrom(4096)
+            bytes_read, self.addrName = self.socket.recvfrom(4096)
         return bytes_read
     
     def rdt_send(self, data):
@@ -59,7 +59,7 @@ class Rdt:
             self.udt_send(sndpkt)
             try:
                 rcvpkt = self.rdt_rcv('wait_ack')
-            except socket.timeout:
+            except:
                 continue
             else:
                 self.socket.settimeout(None)
