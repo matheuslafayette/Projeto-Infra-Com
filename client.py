@@ -1,6 +1,4 @@
-from socket import *
 from rdt import *
-import time
 
 def main():
     
@@ -13,11 +11,13 @@ def main():
     
     with(open(pathfile, "rb")) as file:
         while True:
-            bytes_read = file.read(512)
+            bytes_read = file.read(1024)
             client.rdt_send(bytes_read)
             if not bytes_read:
                 file.close()
                 break
+    
+    print("arquivo enviado para o server")
     
     filename = "client-" + filename
     pathfile = "./client/" + filename
@@ -29,6 +29,8 @@ def main():
                 newFile.close()
                 break   
             newFile.write(bytes_read)
+    
+    print("arquivo recebido do server")
 
 if __name__ == "__main__":
     main()
