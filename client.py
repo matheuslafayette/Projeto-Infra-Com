@@ -1,5 +1,6 @@
 from socket import *
 from rdt import *
+import time
 
 def main():
     
@@ -12,7 +13,7 @@ def main():
     
     with(open(pathfile, "rb")) as file:
         while True:
-            bytes_read = file.read(2048)
+            bytes_read = file.read(512)
             client.rdt_send(bytes_read)
             if not bytes_read:
                 file.close()
@@ -20,8 +21,6 @@ def main():
     
     filename = "client-" + filename
     pathfile = "./client/" + filename
-    client.close()
-    client = Rdt('server')
     
     with open(pathfile, "wb") as newFile:
         while True:

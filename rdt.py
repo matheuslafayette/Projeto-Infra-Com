@@ -50,27 +50,34 @@ class Rdt:
         sndpkt = make_pkt(data, sum, self.num_seq_c)
         sndpkt.encode()
         
-        rcvpkt = None
+        self.send(sndpkt)
+        rcvpkt = self.rdt_rcv('wait_ack')
         
         while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq_c or not rcvpkt['is_ack']):
             self.send(sndpkt)
-            rcvpkt = self.rdt_rcv()
+            rcvpkt = self.rdt_rcv('wait_ack')
         
         self.num_seq_c = 1 - self.num_seq_c
     
-    def rdt_rcv(self):
+    def rdt_rcv(self, state : str = 'null'):
         
-        rcvpkt = eval(self.receive().decode())
-        
-        while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq_s):
+        if(state == 'wait_ack'):
             rcvpkt = eval(self.receive().decode())
-        
-        if(self.type == 'server'):
+            
+            while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq_c):
+                rcvpkt = eval(self.receive().decode())
+            
+            
+        else:
+            rcvpkt = eval(self.receive().decode())
+            
+            while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq_s):
+                rcvpkt = eval(self.receive().decode())
+                
             sndack = make_ack(self.num_seq_s)
             self.send(sndack)
             print('mandei ack')
-        
-        self.num_seq_s = 1 - self.num_seq_s
+            self.num_seq_s = 1 - self.num_seq_s
         
         return rcvpkt
         
