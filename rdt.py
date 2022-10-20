@@ -38,11 +38,11 @@ class Rdt:
         self.socket.sendto(data, addr)
     
     def udt_rcv(self):
-        if(self.type == 'client'):
-            bytes_read = self.socket.recv(4096)
-        else:
-            bytes_read, self.addrName = self.socket.recvfrom(4096)
-        return bytes_read
+        bytes_read, addrName = self.socket.recvfrom(4096)
+        if (self.type == 'server'):
+            self.addrName = addrName
+        
+        return bytes_read, addrName
     
     def rdt_send(self, data):
         
@@ -72,17 +72,19 @@ class Rdt:
         if(state == 'wait_ack'):
             rcvpkt = None
             while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq_c):
-                rcvpkt = eval(self.udt_rcv().decode())
+                rcvpkt, addrName = self.udt_rcv()
+                rcvpkt = eval(rcvpkt.decode())
             
         else:
             rcvpkt = None
             while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq_s):
-                rcvpkt = eval(self.udt_rcv().decode())
+                rcvpkt, addrName = self.udt_rcv()
+                rcvpkt = eval(rcvpkt.decode())
                 
             sndack = make_ack(self.num_seq_s)
             self.udt_send(sndack)
             #print('send ack')
             self.num_seq_s = 1 - self.num_seq_s
         
-        return rcvpkt
+        return rcvpkt, addrName
         
