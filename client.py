@@ -24,7 +24,8 @@ def rcv_data():
 
 def snd_data():
     while True:
-        data = input()
+        data = input('\n')
+        #print('\n')
         clientRcv.udt_send(data, (host, serverPort))
         if data == "close":
             clientRcv.close()
@@ -33,7 +34,6 @@ def snd_data():
     
 def main():
     
-    username = 'user'
     threading.Thread(target=snd_data).start()
     threading.Thread(target=rcv_data).start()
             
