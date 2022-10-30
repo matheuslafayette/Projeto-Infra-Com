@@ -42,4 +42,3 @@ def corrupt(pkt):
         return pkt['checksum'] != checksum(pkt['data'])
     except:
         return pkt['checksum'] != checksum(pkt['data'].encode())
-

@@ -5,33 +5,37 @@ cont_bans = {}
 users_ban = []
 
 def main():
-    server = Rdt('server', addrPort=13009)
+    server = Rdt('server', addrPort=13024)
     
     while True:
         
         print("The server is ready to receive")
         server.reset_num_seq()
         
-        msg, addr = server.udt_rcv()
-        msg = msg.decode()
+        msg, _ = server.rdt_rcv()
+        msg = eval(msg.decode())
+        addr = msg['addr']
+        msg = msg['data']
+        #print(addr)
+        print(users)
         server.reset_num_seq()
         
         if msg.startswith('hi, meu nome eh '):
             newuser = msg.split('hi, meu nome eh ')[1]
             if newuser in users_ban:
                 msg = "voce esta banido!"
-                server.udt_send(time_msg(msg), addr)
+                server.rdt_send(time_msg(msg), addr)
                 continue
             for ad in users.keys():
                 newmsg = newuser + ' entrou na sala!'
-                server.udt_send(time_msg(newmsg), ad)
+                server.rdt_send(time_msg(newmsg), ad)
                 server.reset_num_seq()
             users[addr] = newuser
             cont_bans[newuser] = 0
         
         elif addr not in users.keys():
             msg = "voce ainda nao esta cadastrado!\n"
-            server.udt_send(msg, addr)
+            server.rdt_send(msg, addr)
         
         elif msg == "bye":
             users.pop(addr)
@@ -41,7 +45,7 @@ def main():
             listConnected = "\n"
             for user in users.values():
                 listConnected += user + '\n'
-            server.udt_send(time_msg(listConnected), addr)
+            server.rdt_send(time_msg(listConnected), addr)
             continue
         
         elif msg.startswith("@"):
@@ -50,7 +54,7 @@ def main():
             msg = time_msg(msg, users[addr])
             addrToSend, _ = find_by_value(userToSend)
             if addrToSend is not None:
-                server.udt_send(msg, addrToSend)
+                server.rdt_send(msg, addrToSend)
                     
         elif msg.startswith("ban"):
             ban_user = msg.split("@", 1)[1]
@@ -68,20 +72,24 @@ def main():
             break
         
         else:
+            print('entrou')
             msg = time_msg(msg, users[addr])
             for k in users.keys():
                 if k != addr:
-                    server.udt_send(msg, k)
-
-def time_msg(msg, user = ""):
-    ret = str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" + str(time.localtime().tm_sec) + " " + str(user) + ": " +str(msg) + '\n'
-    return ret
+                    print('eh pra enviar')
+                    server.rdt_send(msg, k)
+                    server.reset_num_seq()
+        print('saiu')
 
 def find_by_value(value):
     for k, v in users.items():
         if v == value:
             return (k, v)
     return None, None
+
+def time_msg(msg, user = ""):
+    ret = str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" + str(time.localtime().tm_sec) + " " + str(user) + ": " +str(msg) + '\n'
+    return ret
 
 if __name__ == "__main__":
     main()
