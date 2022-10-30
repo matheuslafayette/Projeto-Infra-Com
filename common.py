@@ -1,3 +1,6 @@
+from socket import *
+import time
+
 def checksum(data):
     
         addr = 0 
