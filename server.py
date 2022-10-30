@@ -5,7 +5,7 @@ cont_bans = {}
 users_ban = []
 
 def main():
-    server = Rdt('server', addrPort=13024)
+    server = Rdt('server', addrPort=13030)
     
     while True:
         
@@ -37,15 +37,25 @@ def main():
             server.rdt_send(msg, addr)
         
         elif msg == "bye":
+            msg = "voce foi desconectado!\n"
+            server.rdt_send(msg, addr)
+            server.reset_num_seq()
+            
+            logoutuser = users[addr]
+            logoutmsg = logoutuser + ' saiu da sala!'
             users.pop(addr)
-            continue
+            
+            logoutmsg = time_msg(logoutmsg)
+            
+            for k in users.keys():               
+                server.rdt_send(logoutmsg, k)
+                server.reset_num_seq()
         
         elif msg == "list":
             listConnected = "\n"
             for user in users.values():
                 listConnected += user + '\n'
             server.rdt_send(time_msg(listConnected), addr)
-            continue
         
         elif msg.startswith("@"):
             msg = msg.removeprefix('@')

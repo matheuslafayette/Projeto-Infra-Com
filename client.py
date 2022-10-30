@@ -4,7 +4,7 @@ import socket
 import time
 
 host = socket.gethostbyname(socket.gethostname())
-serverPort = 13024
+serverPort = 13030
 clientPort = 5000
 lastBan = None
 secBan = 60
