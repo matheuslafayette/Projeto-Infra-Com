@@ -1,15 +1,18 @@
 from rdt import *
 import threading
 import socket
+import time
 
 host = socket.gethostbyname(socket.gethostname())
 serverPort = 13024
 clientPort = 5000
-clientRcv = Rdt('client', addrPort=serverPort)
+lastBan = None
+secBan = 60
+clientSnd = Rdt('client', addrPort=serverPort)
 
 while True:
     try:
-        serverRcv = Rdt('server', addrPort=clientPort)
+        clientRcv = Rdt('server', addrPort=clientPort)
         break
     except:
         clientPort += 1
@@ -20,20 +23,21 @@ lock = threading.Lock()
 
 def rcv_data():
     while True:
-        serverRcv.reset_num_seq()
-        rcv_pkt, addr = serverRcv.rdt_rcv()
+        clientRcv.reset_num_seq()
+        rcv_pkt, addr = clientRcv.rdt_rcv()
         msg = rcv_pkt.decode()
         print(msg)
 
 def snd_data():
     while True:
         data = make_data(input('\n'))
-        #print('\n')
-        clientRcv.rdt_send(data, (host,serverPort))
+        if lastBan != None and time.time() - lastBan < secBan:
+            continue
+        clientSnd.rdt_send(data, (host,serverPort))
         if data == "close":
-            clientRcv.close()
+            clientSnd.close()
             break
-        clientRcv.reset_num_seq()
+        clientSnd.reset_num_seq()
 
 def make_data(msg):
     return str({

@@ -9,14 +9,13 @@ def main():
     
     while True:
         
-        print("The server is ready to receive")
+        print("The server is ready to receive!")
         server.reset_num_seq()
         
         msg, _ = server.rdt_rcv()
         msg = eval(msg.decode())
         addr = msg['addr']
         msg = msg['data']
-        #print(addr)
         print(users)
         server.reset_num_seq()
         
@@ -66,20 +65,13 @@ def main():
                     users_ban.append(ban_user)   
             except:
                 continue                    
-                    
-        elif msg == "close":
-            server.close()
-            break
         
         else:
-            print('entrou')
             msg = time_msg(msg, users[addr])
             for k in users.keys():
                 if k != addr:
-                    print('eh pra enviar')
                     server.rdt_send(msg, k)
                     server.reset_num_seq()
-        print('saiu')
 
 def find_by_value(value):
     for k, v in users.items():
