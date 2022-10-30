@@ -4,10 +4,8 @@ import socket
 import time
 
 host = socket.gethostbyname(socket.gethostname())
-serverPort = 13030
+serverPort = 13036
 clientPort = 5000
-lastBan = None
-secBan = 60
 clientSnd = Rdt('client', addrPort=serverPort)
 
 while True:
@@ -29,15 +27,25 @@ def rcv_data():
         print(msg)
 
 def snd_data():
+    lastBan = 0
+    secBan = 60
     while True:
-        data = make_data(input('\n'))
-        if lastBan != None and time.time() - lastBan < secBan:
-            continue
+        data = input('\n')
+
+        if data.startswith("ban @"):
+            if lastBan != 0 and time.time() - lastBan < secBan:
+                print("espere ate poder dar ban de novo!")
+                continue
+            else:    
+                lastBan = time.time()
+                
+        data = make_data(data)
         clientSnd.rdt_send(data, (host,serverPort))
         if data == "close":
             clientSnd.close()
             break
         clientSnd.reset_num_seq()
+            
 
 def make_data(msg):
     return str({

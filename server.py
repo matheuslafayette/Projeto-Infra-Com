@@ -5,7 +5,7 @@ cont_bans = {}
 users_ban = []
 
 def main():
-    server = Rdt('server', addrPort=13030)
+    server = Rdt('server', addrPort=13036)
     
     while True:
         
