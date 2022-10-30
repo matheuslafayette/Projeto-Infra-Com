@@ -30,7 +30,7 @@ def main():
             cont_bans[newuser] = 0
         
         elif addr not in users.keys():
-            msg = "voce ainda nao esta cadastrado!"
+            msg = "voce ainda nao esta cadastrado!\n"
             server.udt_send(msg, addr)
         
         elif msg == "bye":
@@ -74,14 +74,14 @@ def main():
                     server.udt_send(msg, k)
 
 def time_msg(msg, user = ""):
-    ret = str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" + str(time.localtime().tm_sec) + " " + str(user) + " " +str(msg) + '\n'
+    ret = str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" + str(time.localtime().tm_sec) + " " + str(user) + ": " +str(msg) + '\n'
     return ret
 
 def find_by_value(value):
     for k, v in users.items():
         if v == value:
             return (k, v)
-    return None
+    return None, None
 
 if __name__ == "__main__":
     main()
