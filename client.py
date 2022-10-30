@@ -3,34 +3,43 @@ import threading
 import socket
 
 host = socket.gethostbyname(socket.gethostname())
-serverPort = 13009
+serverPort = 13024
 clientPort = 5000
+clientRcv = Rdt('client', addrPort=serverPort)
 
 while True:
     try:
-        clientRcv = Rdt('server', addrPort=clientPort)
+        serverRcv = Rdt('server', addrPort=clientPort)
         break
     except:
         clientPort += 1
+        
+addr = (host, clientPort)
         
 lock = threading.Lock()
 
 def rcv_data():
     while True:
-        clientRcv.reset_num_seq()
-        rcv_pkt, addr = clientRcv.udt_rcv()
+        serverRcv.reset_num_seq()
+        rcv_pkt, addr = serverRcv.rdt_rcv()
         msg = rcv_pkt.decode()
         print(msg)
 
 def snd_data():
     while True:
-        data = input('\n')
+        data = make_data(input('\n'))
         #print('\n')
-        clientRcv.udt_send(data, (host, serverPort))
+        clientRcv.rdt_send(data, (host,serverPort))
         if data == "close":
             clientRcv.close()
             break
         clientRcv.reset_num_seq()
+
+def make_data(msg):
+    return str({
+        'data': msg,
+        'addr': addr
+    })
     
 def main():
     
