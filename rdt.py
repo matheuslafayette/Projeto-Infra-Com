@@ -1,8 +1,7 @@
-from socket import *
 from common import *
 class Rdt:
     
-    def __init__(self, type : str, addrPort : int = 12000, addrName : str = 'localhost'):
+    def __init__(self, type : str, addrPort : int = 5000, addrName : str = 'localhost'):
         self.socket = socket(AF_INET, SOCK_DGRAM)
         self.addrPort = addrPort
         self.addrName = addrName
@@ -23,28 +22,24 @@ class Rdt:
     def close(self):
         self.__del__()
     
-    def udt_send(self, data):
+    def udt_send(self, data, addr = None):
         
-        if self.type == 'client':
+        if addr == None:
             addr = (self.addrName, self.addrPort)
-        else:
-            addr = self.addrName
 
         if not isinstance(data, bytes):
             data = data.encode()
         
-        #print(data)
-        
         self.socket.sendto(data, addr)
     
     def udt_rcv(self):
-        if(self.type == 'client'):
-            bytes_read = self.socket.recv(4096)
-        else:
-            bytes_read, self.addrName = self.socket.recvfrom(4096)
-        return bytes_read
+        bytes_read, addrName = self.socket.recvfrom(4096)
+        if (self.type == 'server'):
+            self.addrName, self.addrPort = addrName
+        
+        return bytes_read, addrName
     
-    def rdt_send(self, data):
+    def rdt_send(self, data, addr = None):
         
         if not isinstance(data, bytes):
             data = data.encode()
@@ -56,7 +51,7 @@ class Rdt:
         rcvpkt = None
         while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq_c or not rcvpkt['is_ack']):
             self.socket.settimeout(1)
-            self.udt_send(sndpkt)
+            self.udt_send(sndpkt, addr)
             try:
                 rcvpkt = self.rdt_rcv('wait_ack')
             except:
@@ -72,17 +67,21 @@ class Rdt:
         if(state == 'wait_ack'):
             rcvpkt = None
             while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq_c):
-                rcvpkt = eval(self.udt_rcv().decode())
+                rcvpkt, addrName = self.udt_rcv()
+                rcvpkt = eval(rcvpkt.decode())
             
         else:
             rcvpkt = None
             while(not rcvpkt or corrupt(rcvpkt) or rcvpkt['num_seq'] != self.num_seq_s):
-                rcvpkt = eval(self.udt_rcv().decode())
+                rcvpkt, addrName = self.udt_rcv()
+                rcvpkt = eval(rcvpkt.decode())
                 
             sndack = make_ack(self.num_seq_s)
             self.udt_send(sndack)
             #print('send ack')
             self.num_seq_s = 1 - self.num_seq_s
         
-        return rcvpkt
+        return rcvpkt['data'], addrName
         
+    def has_message(self):
+        return self.socket.recv is not None

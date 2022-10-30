@@ -1,36 +1,41 @@
 from rdt import *
+import threading
+import socket
 
+host = socket.gethostbyname(socket.gethostname())
+serverPort = 13009
+clientPort = 5000
+
+while True:
+    try:
+        clientRcv = Rdt('server', addrPort=clientPort)
+        break
+    except:
+        clientPort += 1
+        
+lock = threading.Lock()
+
+def rcv_data():
+    while True:
+        clientRcv.reset_num_seq()
+        rcv_pkt, addr = clientRcv.udt_rcv()
+        msg = rcv_pkt.decode()
+        print(msg)
+
+def snd_data():
+    while True:
+        data = input()
+        clientRcv.udt_send(data, (host, serverPort))
+        if data == "close":
+            clientRcv.close()
+            break
+        clientRcv.reset_num_seq()
+    
 def main():
     
-    client = Rdt('client')
-    
-    filename = input("nome do arquivo: ")
-    pathfile = "./arquivos-teste/" + filename
-    
-    client.rdt_send(filename)
-    
-    with(open(pathfile, "rb")) as file:
-        while True:
-            bytes_read = file.read(1024)
-            client.rdt_send(bytes_read)
-            if not bytes_read:
-                file.close()
-                break
-    
-    print("arquivo enviado para o server")
-    
-    filename = "client-" + filename
-    pathfile = "./client/" + filename
-    
-    with open(pathfile, "wb") as newFile:
-        while True:
-            bytes_read = client.rdt_rcv()['data']
-            if not bytes_read:
-                newFile.close()
-                break   
-            newFile.write(bytes_read)
-    
-    print("arquivo recebido do server")
-
+    username = 'user'
+    threading.Thread(target=snd_data).start()
+    threading.Thread(target=rcv_data).start()
+            
 if __name__ == "__main__":
     main()
