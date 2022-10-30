@@ -5,13 +5,14 @@ cont_bans = {}
 users_ban = []
 
 def main():
-    server = Rdt('server', addrPort=13036)
+    server = Rdt('server', addrPort=13037)
     
     while True:
         
         print("The server is ready to receive!")
         server.reset_num_seq()
         
+        #recebe mensagem
         msg, _ = server.rdt_rcv()
         msg = eval(msg.decode())
         addr = msg['addr']
@@ -19,6 +20,7 @@ def main():
         print(users)
         server.reset_num_seq()
         
+        #cadastrar
         if msg.startswith('hi, meu nome eh '):
             newuser = msg.split('hi, meu nome eh ')[1]
             if newuser in users_ban:
@@ -32,10 +34,12 @@ def main():
             users[addr] = newuser
             cont_bans[newuser] = 0
         
+        #nao está cadastrado
         elif addr not in users.keys():
             msg = "voce ainda nao esta cadastrado!\n"
             server.rdt_send(msg, addr)
         
+        #sair da sala
         elif msg == "bye":
             msg = "voce foi desconectado!\n"
             server.rdt_send(msg, addr)
@@ -51,12 +55,14 @@ def main():
                 server.rdt_send(logoutmsg, k)
                 server.reset_num_seq()
         
+        #listar usuarios
         elif msg == "list":
             listConnected = "\n"
             for user in users.values():
                 listConnected += user + '\n'
             server.rdt_send(time_msg(listConnected), addr)
         
+        #mandar mensagem private
         elif msg.startswith("@"):
             msg = msg.removeprefix('@')
             userToSend, msg = msg.split(" ", 1)
@@ -64,7 +70,8 @@ def main():
             addrToSend, _ = find_by_value(userToSend)
             if addrToSend is not None:
                 server.rdt_send(msg, addrToSend)
-                    
+        
+        #banir alguem
         elif msg.startswith("ban"):
             ban_user = msg.split("@", 1)[1]
             try:
@@ -76,6 +83,7 @@ def main():
             except:
                 continue                    
         
+        #mensagem geral
         else:
             msg = time_msg(msg, users[addr])
             for k in users.keys():

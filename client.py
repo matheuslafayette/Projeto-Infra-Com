@@ -4,7 +4,7 @@ import socket
 import time
 
 host = socket.gethostbyname(socket.gethostname())
-serverPort = 13036
+serverPort = 13037
 clientPort = 5000
 clientSnd = Rdt('client', addrPort=serverPort)
 
@@ -16,8 +16,6 @@ while True:
         clientPort += 1
         
 addr = (host, clientPort)
-        
-lock = threading.Lock()
 
 def rcv_data():
     while True:
@@ -46,7 +44,6 @@ def snd_data():
             break
         clientSnd.reset_num_seq()
             
-
 def make_data(msg):
     return str({
         'data': msg,

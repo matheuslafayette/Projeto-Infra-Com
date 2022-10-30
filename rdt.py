@@ -82,6 +82,3 @@ class Rdt:
             self.num_seq_s = 1 - self.num_seq_s
         
         return rcvpkt['data'], addrName
-        
-    def has_message(self):
-        return self.socket.recv is not None
